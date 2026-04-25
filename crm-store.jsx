@@ -10,14 +10,6 @@ const MOCK_TEMPLATES = [
   { id: 't4', name: 'Nuevo catálogo', body: 'Hola {nombre}! 🌟 Tenemos novedades en nuestro catálogo que te van a encantar. ¿Te puedo mostrar las últimas llegadas? Tenemos precios especiales esta semana.' },
 ];
 
-const DEFAULT_CATALOG = [
-  { id: 'p1', name: 'Perfume Chanel Dupe 50ml', category: 'Perfumes', price: 450, stock: 12, sku: 'PER-001', description: 'Fragancia inspirada en Chanel N°5, larga duración.', featured: true },
-  { id: 'p2', name: 'Perfume Versace Dupe 100ml', category: 'Perfumes', price: 380, stock: 8, sku: 'PER-002', description: 'Inspirado en Versace Eros.', featured: false },
-  { id: 'p3', name: 'Set Cremas Corporales x3', category: 'Cremas', price: 750, stock: 20, sku: 'CRE-001', description: 'Set de 3 cremas hidratantes con vitamina E.', featured: true },
-  { id: 'p4', name: 'Labiales Matte x6', category: 'Maquillaje', price: 480, stock: 10, sku: 'MAQ-001', description: 'Set de 6 labiales matte en colores tendencia.', featured: false },
-  { id: 'p5', name: 'Kit Maquillaje Completo', category: 'Maquillaje', price: 890, stock: 7, sku: 'MAQ-002', description: 'Kit completo: base, contorno, iluminador y más.', featured: true },
-];
-
 const BASE_STATE = {
   authLoading: true,
   isLoggedIn: false,
@@ -27,7 +19,7 @@ const BASE_STATE = {
   orders: [],
   templates: MOCK_TEMPLATES,
   drafts: [],
-  catalog: DEFAULT_CATALOG,
+  catalog: [], // Empezamos vacío por defecto
   notifications: [],
   notification: null,
   selectedClientId: null,
@@ -52,7 +44,7 @@ function reducer(state, action) {
         orders:        d.orders        || [],
         templates:     d.templates     || MOCK_TEMPLATES,
         drafts:        d.drafts        || [],
-        catalog:       d.catalog       || DEFAULT_CATALOG,
+        catalog:       d.catalog       || [], // Fallback a vacío
         notifications: d.notifications || [],
         theme:         d.theme         || 'system',
         settings:      d.settings      || BASE_STATE.settings,
