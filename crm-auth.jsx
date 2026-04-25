@@ -18,9 +18,9 @@ const fbError = (code) => FB_ERRORS[code] || 'Error al autenticar. Intenta de nu
 
 // ── Google Sign-in helper ──────────────────────────────────────────────────
 async function signInWithGoogle() {
+  if (!window.fbAuth) throw new Error('Firebase Auth not initialized');
   const provider = new firebase.auth.GoogleAuthProvider();
-  provider.addScope('email');
-  provider.addScope('profile');
+  // No necesitamos scopes manuales para el login básico, Firebase los maneja
   return window.fbAuth.signInWithPopup(provider);
 }
 
