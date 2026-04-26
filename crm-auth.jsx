@@ -163,7 +163,7 @@ function LoginScreen() {
             
             {/* Logo Image */}
             <div className="flex justify-center mb-6">
-              <img src="Logo.png" alt="CRM Logo" className="w-32 h-auto" onError={(e) => { e.target.style.display = 'none'; }} />
+              <img src="Logo2.png" alt="CRM Logo" className="w-32 h-auto" onError={(e) => { e.target.style.display = 'none'; }} />
             </div>
 
             {sentForgot && tab === 'forgot' ? (
