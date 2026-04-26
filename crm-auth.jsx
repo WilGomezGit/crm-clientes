@@ -264,13 +264,13 @@ function LoginScreen() {
                           <path fill="#FBBC05" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.105 0-9.26-3.002-11.266-7.359L6.306 33.48C9.18 39.663 16.045 44 24 44z"/>
                           <path fill="#EA4335" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C42.971 35.525 44 32 44 24c0-1.341-.138-2.65-.389-3.917z"/>
                         </svg>
-                        {gLoading ? 'Conectando...' : 'Registrarse con Gmail'}
+                        {gLoading ? 'Conectando...' : 'Gmail'}
                       </button>
 
                       <button type="button" onClick={() => handleOAuth('facebook')} disabled={fLoading}
                         className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold text-blue-700 bg-blue-50 border border-blue-100 hover:bg-blue-100 transition-colors">
                         <FacebookIcon />
-                        {fLoading ? 'Conectando...' : 'Registrarse con Facebook'}
+                        {fLoading ? 'Conectando...' : 'Facebook'}
                       </button>
                     </div>
                   </>
