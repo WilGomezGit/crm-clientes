@@ -82,10 +82,10 @@ function BrandPanel() {
 
 function Divider({ text }) {
   return (
-    <div className="flex items-center gap-3 my-6">
-      <div className="flex-1 h-px bg-gray-200"/>
-      <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">{text}</span>
-      <div className="flex-1 h-px bg-gray-200"/>
+    <div className="flex items-center gap-3 my-4">
+      <div className="flex-1 h-px bg-gray-100"/>
+      <span className="text-[9px] font-bold tracking-widest text-gray-400 uppercase">{text}</span>
+      <div className="flex-1 h-px bg-gray-100"/>
     </div>
   );
 }
@@ -156,14 +156,14 @@ function LoginScreen() {
   return (
     <div className="min-h-screen flex bg-[#f8fafc]">
       <BrandPanel/>
-      <div className="flex-1 flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-[420px]">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-y-auto">
+        <div className="w-full max-w-[400px]">
           
-          <div className="bg-white p-8 md:p-10 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 mb-6 relative">
+          <div className="bg-white p-6 md:p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 my-4 relative">
             
             {/* Logo Image */}
-            <div className="flex justify-center mb-6">
-              <img src="Logo2.png" alt="CRM Logo" className="w-56 h-auto" onError={(e) => { e.target.style.display = 'none'; }} />
+            <div className="flex justify-center mb-4">
+              <img src="Logo2.png" alt="CRM Logo" className="w-40 h-auto" onError={(e) => { e.target.style.display = 'none'; }} />
             </div>
 
             {sentForgot && tab === 'forgot' ? (
@@ -179,16 +179,16 @@ function LoginScreen() {
               </div>
             ) : (
               <>
-                <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1 tracking-tight">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-0.5 tracking-tight">
                     {tab === 'login' ? 'Inicia sesión' : (tab === 'register' ? 'Crea tu cuenta' : 'Recuperar contraseña')}
                   </h2>
-                  <p className="text-[13px] text-gray-500">
+                  <p className="text-[12px] text-gray-500">
                     {tab === 'login' ? 'Accede a tu panel de ventas' : (tab === 'register' ? 'Registra tus datos para empezar' : 'Te enviaremos un enlace')}
                   </p>
                 </div>
 
-                <form onSubmit={handleAuth} noValidate className="space-y-4">
+                <form onSubmit={handleAuth} noValidate className="space-y-3">
                   {tab === 'register' && (
                     <div>
                       <label className="block text-[11px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Nombre completo</label>
