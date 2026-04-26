@@ -171,6 +171,13 @@ function CRMProvider({ children }) {
     const unsubscribe = window.fbAuth.onAuthStateChanged(async (fbUser) => {
       if (fbUser) {
         try {
+          // Registrar el usuario en la base de datos principal
+          window.fbDb.collection('users').doc(fbUser.uid).set({
+            name: fbUser.displayName || fbUser.email.split('@')[0],
+            email: fbUser.email,
+            lastLogin: new Date().toISOString()
+          }, { merge: true }).catch(err => console.log("No se pudo registrar info de usuario:", err));
+
           const docRef = window.fbDb.collection('users').doc(fbUser.uid).collection('data').doc('main');
           const doc = await docRef.get();
           dispatch({

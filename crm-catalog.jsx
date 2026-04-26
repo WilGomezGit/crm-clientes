@@ -163,8 +163,7 @@ function CatalogView() {
 
       <div className="p-4 md:p-6 pb-24 md:pb-6">
         {filtered.length === 0 ? (
-          <EmptyState icon={<IconPackage size={24}/>} title="Sin productos" desc={search ? 'Intenta con otro término' : 'Agrega tu primer producto al catálogo'}
-            action={<Btn onClick={() => setShowAdd(true)}><IconPlus size={15}/>Agregar producto</Btn>}/>
+          <EmptyState icon={<IconPackage size={24}/>} title="Sin productos" desc={search ? 'Intenta con otro término' : 'Agrega tu primer producto al catálogo'} />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {filtered.map(p => <ProductCard key={p.id} product={p} onEdit={setEditProduct} onDelete={setDeleteProduct} onAddToOrder={handleAddToOrder}/>)}

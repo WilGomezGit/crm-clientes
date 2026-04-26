@@ -454,8 +454,7 @@ function ClientsView() {
       <div className="p-4 md:p-6 pb-24 md:pb-6">
         {filtered.length === 0 ? (
           <EmptyState icon={<IconUsers size={24}/>} title="Sin clientes"
-            desc={search ? 'Intenta con otro término de búsqueda' : 'Agrega tu primer cliente o importa desde Excel'}
-            action={<Btn onClick={() => setShowAdd(true)}><IconPlus size={15}/>Agregar cliente</Btn>}/>
+            desc={search ? 'Intenta con otro término de búsqueda' : 'Agrega tu primer cliente o importa desde Excel'} />
         ) : viewMode === 'cards' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filtered.map(c => <ClientCard key={c.id} client={c} onEdit={setEditClient} onDelete={setDeleteClient} onMessage={handleMessage}/>)}
