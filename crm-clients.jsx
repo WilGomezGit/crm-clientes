@@ -474,7 +474,7 @@ function ClientsView() {
         )}
       </div>
 
-      <FAB onClick={() => setShowAdd(true)} icon={<IconPlus size={18}/>} label="Agregar"/>
+
 
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Nuevo cliente">
         <ClientForm onSave={handleAdd} onClose={() => setShowAdd(false)}/>

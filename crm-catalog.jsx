@@ -172,7 +172,7 @@ function CatalogView() {
         )}
       </div>
 
-      <FAB onClick={() => setShowAdd(true)} icon={<IconPlus size={18}/>} label="Producto"/>
+
 
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Nuevo producto" size="lg">
         <ProductForm onSave={handleAdd} onClose={() => setShowAdd(false)}/>

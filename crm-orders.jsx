@@ -265,7 +265,7 @@ function OrdersView() {
         )}
       </div>
 
-      <FAB onClick={() => setShowAdd(true)} icon={<IconPlus size={18}/>} label="Pedido"/>
+
 
       <Modal open={showAdd} onClose={() => setShowAdd(false)} title="Nuevo pedido" size="lg">
         <OrderForm clients={state.clients} catalog={state.catalog || []} onSave={handleAdd} onClose={() => setShowAdd(false)}/>

@@ -1,1 +1,11 @@
+🚀 OPCIÓN RÁPIDA (la que necesitas)
+📂 1. Ve a la carpeta de tu proyecto
+
+Ejemplo:
+
+cd ruta/de/tu/carpeta
+▶️ 2. Ejecuta el servidor
+✅ Si tienes Python 3:
 python -m http.server 8787
+🌐 3. Abre en el navegador
+http://localhost:8787/CRM%20App.html
