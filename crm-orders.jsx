@@ -252,7 +252,8 @@ function OrdersView() {
       <div className="p-4 md:p-6 pb-24 md:pb-6">
         {filtered.length === 0 ? (
           <EmptyState icon={<IconShoppingBag size={24}/>} title="Sin pedidos"
-            desc={search ? 'Intenta con otro término' : 'Crea tu primer pedido'} />
+            desc={search ? 'Intenta con otro término' : 'Crea tu primer pedido'}
+            action={<Btn onClick={() => setShowAdd(true)}><IconPlus size={15}/>Crear pedido</Btn>}/>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {filtered.map(o => (
