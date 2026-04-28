@@ -254,7 +254,7 @@ function LoginScreen() {
 
                 {tab !== 'forgot' && (
                   <>
-                    <Divider text="o regístrate con"/>
+                    <Divider text="o Continúa con"/>
                     <div className="space-y-3">
                       <button type="button" onClick={() => handleOAuth('google')} disabled={gLoading}
                         className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl text-[14px] font-semibold text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors">
