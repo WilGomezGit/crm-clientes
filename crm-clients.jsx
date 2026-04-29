@@ -1,5 +1,5 @@
 // crm-clients.jsx — Clients management with real Excel/CSV import
-const { useState: useClientsState, useMemo: useClientsMemo, useRef: useClientsRef, useCallback: useClientsCallback } = React;
+const { useState: useClientsState, useMemo: useClientsMemo, useRef: useClientsRef, useCallback: useClientsCallback, useEffect: useClientsEffect } = React;
 
 function ClientForm({ client, onSave, onClose }) {
   const [form, setForm] = useClientsState(client || { name: '', phone: '', city: '', address: '', notes: '', status: 'active' });
@@ -45,6 +45,7 @@ function ImportModal({ open, onClose }) {
   const [step, setStep] = useClientsState(0); // 0=upload, 1=preview+mapping, 2=done
   const [fileName, setFileName] = useClientsState('');
   const [preview, setPreview] = useClientsState([]);
+  const [allData, setAllData] = useClientsState([]);
   const [columns, setColumns] = useClientsState([]);
   const [mapping, setMapping] = useClientsState({ name: '', phone: '', city: '', address: '', notes: '' });
   const [loading, setLoading] = useClientsState(false);
@@ -52,7 +53,7 @@ function ImportModal({ open, onClose }) {
   const fileRef = useClientsRef(null);
 
   const resetState = () => {
-    setStep(0); setFileName(''); setPreview([]); setColumns([]);
+    setStep(0); setFileName(''); setPreview([]); setAllData([]); setColumns([]);
     setMapping({ name: '', phone: '', city: '', address: '', notes: '' });
     setLoading(false); setParseError('');
   };
@@ -90,7 +91,8 @@ function ImportModal({ open, onClose }) {
       }
       setColumns(cols);
       setMapping(autoDetectMapping(cols));
-      setPreview(validRows.slice(0, 100));
+      setAllData(validRows);
+      setPreview(validRows.slice(0, 100)); // Still keep preview for UI but use 100 as sample
       setStep(1);
       setLoading(false);
     };
@@ -168,7 +170,7 @@ function ImportModal({ open, onClose }) {
     const existingPhones = new Set(state.clients.map(c => (c.phone || '').replace(/\D/g, '')).filter(Boolean));
     const toImport = [];
     let skipped = 0;
-    preview.forEach(row => {
+    allData.forEach(row => {
       const name = String(mapping.name ? (row[mapping.name] || '') : '').trim();
       const phone = String(mapping.phone ? (row[mapping.phone] || '') : '').trim();
       if (!name) return;
@@ -238,7 +240,7 @@ function ImportModal({ open, onClose }) {
           <div className="space-y-4">
             <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">
               <IconCheck size={16} className="flex-shrink-0"/>
-              <span><strong>{fileName}</strong> — <strong>{preview.length}</strong> filas detectadas</span>
+              <span><strong>{fileName}</strong> — <strong>{allData.length}</strong> filas detectadas</span>
             </div>
 
             {/* Column mapping */}
@@ -262,7 +264,7 @@ function ImportModal({ open, onClose }) {
 
             {/* Preview table */}
             <div>
-              <p className="text-xs font-semibold text-gray-700 mb-2">Vista previa ({Math.min(preview.length, 10)} de {preview.length} filas)</p>
+              <p className="text-xs font-semibold text-gray-700 mb-2">Vista previa ({Math.min(allData.length, 10)} de {allData.length} filas)</p>
               <div className="border border-gray-100 rounded-xl overflow-hidden">
                 <div className="overflow-x-auto max-h-52">
                   <table className="w-full text-xs min-w-max">
@@ -292,7 +294,7 @@ function ImportModal({ open, onClose }) {
                 <IconChevronLeft size={15}/>Atrás
               </Btn>
               <Btn onClick={handleImport} className="flex-1" disabled={!mapping.name}>
-                <IconDownload size={15}/>Importar {preview.length} clientes
+                <IconDownload size={15}/>Importar {allData.length} clientes
               </Btn>
             </div>
           </div>
@@ -384,6 +386,12 @@ function ClientsView() {
   const [editClient, setEditClient] = useClientsState(null);
   const [deleteClient, setDeleteClient] = useClientsState(null);
   const [showImport, setShowImport] = useClientsState(false);
+  const [page, setPage] = useClientsState(1);
+  const PAGE_SIZE = 20;
+
+  useClientsEffect(() => {
+    setPage(1);
+  }, [search, filter]);
 
   const filtered = useClientsMemo(() => {
     let list = state.clients;
@@ -398,6 +406,12 @@ function ClientsView() {
     }
     return list;
   }, [state.clients, search, filter]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginatedList = useClientsMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filtered.slice(start, start + PAGE_SIZE);
+  }, [filtered, page]);
 
   const handleAdd = (client) => { dispatch({ type: 'ADD_CLIENT', client }); notify('Cliente agregado ✅'); };
   const handleEdit = (client) => { dispatch({ type: 'UPDATE_CLIENT', client }); notify('Cliente actualizado ✅'); };
@@ -458,7 +472,7 @@ function ClientsView() {
             action={<Btn onClick={() => setShowAdd(true)}><IconPlus size={15}/>Agregar cliente</Btn>}/>
         ) : viewMode === 'cards' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {filtered.map(c => <ClientCard key={c.id} client={c} onEdit={setEditClient} onDelete={setDeleteClient} onMessage={handleMessage}/>)}
+            {paginatedList.map(c => <ClientCard key={c.id} client={c} onEdit={setEditClient} onDelete={setDeleteClient} onMessage={handleMessage}/>)}
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
@@ -467,8 +481,51 @@ function ClientsView() {
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>{['Cliente','Teléfono','Estado','Pedidos','Total','Acciones'].map(h => <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500">{h}</th>)}</tr>
                 </thead>
-                <tbody>{filtered.map(c => <ClientRow key={c.id} client={c} onEdit={setEditClient} onDelete={setDeleteClient} onMessage={handleMessage}/>)}</tbody>
+                <tbody>{paginatedList.map(c => <ClientRow key={c.id} client={c} onEdit={setEditClient} onDelete={setDeleteClient} onMessage={handleMessage}/>)}</tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between mt-8 gap-4 px-2">
+            <p className="text-xs text-gray-500 order-2 sm:order-1">
+              Mostrando <span className="font-medium text-gray-700">{(page-1)*PAGE_SIZE + 1}</span> a <span className="font-medium text-gray-700">{Math.min(page*PAGE_SIZE, filtered.length)}</span> de <span className="font-medium text-gray-700">{filtered.length}</span> clientes
+            </p>
+            <div className="flex items-center gap-1 order-1 sm:order-2">
+              <button
+                disabled={page === 1}
+                onClick={() => { setPage(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className="p-2 rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <IconChevronLeft size={16}/>
+              </button>
+              <div className="flex items-center gap-1">
+                {[...Array(totalPages)].map((_, i) => {
+                  const p = i + 1;
+                  if (totalPages > 5 && p > 1 && p < totalPages && Math.abs(p - page) > 1) {
+                    if (p === 2 || p === totalPages - 1) return <span key={p} className="text-gray-400 px-1">...</span>;
+                    return null;
+                  }
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => { setPage(p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${page === p ? 'bg-primary-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                disabled={page === totalPages}
+                onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className="p-2 rounded-lg border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <IconChevronRight size={16}/>
+              </button>
             </div>
           </div>
         )}
