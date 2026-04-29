@@ -32,43 +32,27 @@ function TemplateEditor({ template, onSave, onClose, isNew }) {
     setTimeout(() => { el.focus(); el.setSelectionRange(start + v.length, start + v.length); }, 0);
   };
   
-  const handleUpload = async (e) => {
+  const handleUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!window.fbStorage) { alert("Error: Firebase Storage no se ha inicializado correctamente."); return; }
     
-    console.log("Iniciando subida de:", file.name);
-    setUploading(true);
-    
-    try {
-      const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-      const storageRef = window.fbStorage.ref().child(`templates/${fileName}`);
-      
-      // Usar el método put con seguimiento de estado para mayor seguridad
-      const uploadTask = storageRef.put(file);
-      
-      uploadTask.on('state_changed', 
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log('Progreso de subida: ' + progress + '%');
-        }, 
-        (error) => {
-          console.error("Error en uploadTask:", error);
-          alert("Error de Firebase: " + error.message + "\nCódigo: " + error.code);
-          setUploading(false);
-        }, 
-        async () => {
-          const url = await uploadTask.snapshot.ref.getDownloadURL();
-          console.log("Subida exitosa. URL:", url);
-          set('image', url);
-          setUploading(false);
-        }
-      );
-    } catch (err) {
-      console.error("Error general en handleUpload:", err);
-      alert("Error inesperado: " + err.message);
-      setUploading(false);
+    // Validar tamaño (máximo 500KB para no saturar Firestore)
+    if (file.size > 512 * 1024) {
+      alert("La imagen es muy grande. Por favor usa una de menos de 500KB.");
+      return;
     }
+
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      set('image', ev.target.result);
+      setUploading(false);
+    };
+    reader.onerror = () => {
+      alert("Error al leer el archivo.");
+      setUploading(false);
+    };
+    reader.readAsDataURL(file);
   };
 
   const isValid = form.name.trim() && form.body.trim();
