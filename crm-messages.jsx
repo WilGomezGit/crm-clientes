@@ -32,27 +32,33 @@ function TemplateEditor({ template, onSave, onClose, isNew }) {
     setTimeout(() => { el.focus(); el.setSelectionRange(start + v.length, start + v.length); }, 0);
   };
   
-  const handleUpload = (e) => {
+  const handleUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Validar tamaño (máximo 500KB para no saturar Firestore)
-    if (file.size > 512 * 1024) {
-      alert("La imagen es muy grande. Por favor usa una de menos de 500KB.");
+    // Validar tamaño (máximo 2MB ahora que va a Storage)
+    if (file.size > 2 * 1024 * 1024) {
+      alert("La imagen es muy grande. Por favor usa una de menos de 2MB.");
       return;
     }
 
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      set('image', ev.target.result);
+    try {
+      if (!window.fbStorage) {
+        throw new Error("Firebase Storage no está disponible.");
+      }
+      const storageRef = window.fbStorage.ref();
+      const fileRef = storageRef.child(`templates/${Date.now()}_${file.name}`);
+      const snapshot = await fileRef.put(file);
+      const url = await snapshot.ref.getDownloadURL();
+      
+      set('image', url);
+    } catch (err) {
+      console.error("Error al subir archivo:", err);
+      alert("No se pudo subir la imagen. Verifica tu conexión o configuración de Firebase.");
+    } finally {
       setUploading(false);
-    };
-    reader.onerror = () => {
-      alert("Error al leer el archivo.");
-      setUploading(false);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const isValid = form.name.trim() && form.body.trim();
@@ -108,7 +114,7 @@ function TemplateEditor({ template, onSave, onClose, isNew }) {
 // ── Queue Item ─────────────────────────────────────────────────────────────
 function QueueItem({ draft, index, isCurrent, countdown, onRemove, countryCode }) {
   const waPhone = (draft.phone || '').replace(/\D/g, '');
-  const waUrl = waPhone ? buildWALink(draft.phone, draft.message, countryCode) : null;
+  const waUrl = waPhone ? buildWALink(draft.phone, draft.message, countryCode, draft.image) : null;
   const s = getStatusColor(draft.status);
   return (
     <div className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${isCurrent ? 'border-purple-300 bg-purple-50 shadow-sm' : 'border-gray-100 bg-white'}`}>
@@ -414,7 +420,7 @@ function MessagesView() {
 
   const getWALink = () => {
     if (!previewClient?.phone || !preview) return null;
-    return buildWALink(previewClient.phone, preview, countryCode);
+    return buildWALink(previewClient.phone, preview, countryCode, image);
   };
 
   const handleSaveDraft = () => {
@@ -429,7 +435,18 @@ function MessagesView() {
 
   const handleAddToQueue = () => {
     if (!template || recipients.length === 0) { notify('Selecciona plantilla y destinatarios', 'error'); return; }
-    const drafts = recipients.map(c => {
+    
+    // Filtrar clientes que ya están en la cola para evitar duplicados
+    const currentQueuedIds = new Set(queuedDrafts.map(d => d.clientId));
+    const newRecipients = recipients.filter(c => !currentQueuedIds.has(c.id));
+    
+    if (newRecipients.length === 0) {
+      notify('Todos los clientes seleccionados ya están en la cola', 'warn');
+      setTab('queue');
+      return;
+    }
+
+    const drafts = newRecipients.map(c => {
       const clientVars = { ...vars, nombre: c.name, ciudad: c.city || '' };
       const msg = renderTemplate(template.body, clientVars);
       return { templateId: selectedTemplate, clientId: c.id, clientName: c.name, phone: c.phone || '', message: msg, image: template.image || '', status: 'queued' };
@@ -460,7 +477,7 @@ function MessagesView() {
     if (!queueRunning || queueIndex < 0 || queueIndex >= queuedDrafts.length) return;
     const current = queuedDrafts[queueIndex];
 
-    const waLink = buildWALink(current.phone, current.message, countryCode);
+    const waLink = buildWALink(current.phone, current.message, countryCode, current.image);
     if (waLink) {
       setTimeout(() => window.open(waLink, '_blank'), 300);
     }
@@ -586,7 +603,7 @@ function MessagesView() {
                   <div className="flex flex-col gap-2 max-w-[85%]">
                     {image && (
                       <div className="bg-white p-1 rounded-xl rounded-tl-sm shadow-sm overflow-hidden self-start">
-                        <img src={image} alt="Imagen del mensaje" className="w-full h-auto rounded-lg max-h-48 object-cover" onError={e => e.target.src='https://placehold.co/400x200?text=Error+al+cargar+imagen'}/>
+                        <img src={image} alt="Imagen del mensaje" className="w-full h-auto rounded-lg max-h-32 object-cover" onError={e => e.target.src='https://placehold.co/400x200?text=Error+al+cargar+imagen'}/>
                       </div>
                     )}
                     {preview ? (
@@ -778,6 +795,9 @@ function MessagesView() {
                 <Btn variant="danger" onClick={stopQueue} className="flex-1"><IconX size={15}/>Detener cola</Btn>
               )}
               <Btn variant="secondary" onClick={() => setTab('compose')} title="Agregar más"><IconPlus size={15}/></Btn>
+              <Btn variant="danger" onClick={() => { if(confirm('¿Vaciar toda la cola?')) dispatch({ type: 'CLEAR_QUEUE' }); }} title="Limpiar cola">
+                <IconTrash size={15}/>
+              </Btn>
             </div>
 
             {/* Queued messages */}
@@ -810,12 +830,19 @@ function MessagesView() {
                       <p className="text-xs text-gray-400 truncate">{d.message.slice(0, 60)}...</p>
                     </div>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => { dispatch({ type: 'UPDATE_DRAFT', draft: { ...d, status: 'queued' } }); notify('Movido a la cola'); }}
+                      <button onClick={() => { 
+                        if (state.drafts.some(x => x.clientId === d.clientId && x.status === 'queued')) {
+                          notify('Este cliente ya está en la cola', 'warn');
+                        } else {
+                          dispatch({ type: 'UPDATE_DRAFT', draft: { ...d, status: 'queued' } }); 
+                          notify('Movido a la cola');
+                        }
+                      }}
                         className="w-7 h-7 flex items-center justify-center rounded-lg text-purple-500 hover:bg-purple-50 transition-colors" title="Añadir a cola">
                         <IconClock size={14}/>
                       </button>
-                      {buildWALink(d.phone, d.message, countryCode) && (
-                        <a href={buildWALink(d.phone, d.message, countryCode)} target="_blank" rel="noreferrer"
+                      {buildWALink(d.phone, d.message, countryCode, d.image) && (
+                        <a href={buildWALink(d.phone, d.message, countryCode, d.image)} target="_blank" rel="noreferrer"
                           className="w-7 h-7 flex items-center justify-center rounded-lg text-[#25D366] hover:bg-emerald-50 transition-colors">
                           <IconWhatsapp size={14}/>
                         </a>

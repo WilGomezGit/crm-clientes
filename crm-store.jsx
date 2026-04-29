@@ -118,6 +118,8 @@ function reducer(state, action) {
       return { ...state, drafts: state.drafts.map(d => d.id === action.draft.id ? { ...d, ...action.draft } : d) };
     case 'DELETE_DRAFT':
       return { ...state, drafts: state.drafts.filter(d => d.id !== action.id) };
+    case 'CLEAR_QUEUE':
+      return { ...state, drafts: state.drafts.filter(d => d.status !== 'queued') };
 
     case 'SET_THEME':
       return { ...state, theme: action.theme };
@@ -308,11 +310,15 @@ function exportCSV(data, filename) {
   document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 
-function buildWALink(phone, message, countryCode) {
+function buildWALink(phone, message, countryCode, image) {
   const clean = (phone || '').replace(/\D/g, '');
   if (!clean) return null;
   const full = clean.startsWith(countryCode || '') ? clean : (countryCode || '') + clean;
-  return 'https://wa.me/' + full + '?text=' + encodeURIComponent(message || '');
+  let text = message || '';
+  if (image && !image.startsWith('data:')) {
+    text += '\n\n' + image;
+  }
+  return 'https://wa.me/' + full + '?text=' + encodeURIComponent(text);
 }
 
 Object.assign(window, { CRMProvider, useCRM, getStatusColor, formatCurrency, avatarBg, exportCSV, buildWALink });
