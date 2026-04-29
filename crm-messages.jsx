@@ -16,7 +16,7 @@ function renderTemplate(body, vars) {
 
 // ── Template Editor ────────────────────────────────────────────────────────
 function TemplateEditor({ template, onSave, onClose, isNew }) {
-  const [form, setForm] = useMsgState(template || { name: '', body: '' });
+  const [form, setForm] = useMsgState(template || { name: '', body: '', image: '' });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const textareaRef = useMsgRef(null);
   const variables = ['{nombre}', '{producto}', '{monto}', '{pedido}', '{ciudad}', '{fecha}'];
@@ -50,6 +50,12 @@ function TemplateEditor({ template, onSave, onClose, isNew }) {
           ))}
         </div>
       </div>
+      <Input label="URL de Imagen (Opcional)" value={form.image || ''} onChange={e => set('image', e.target.value)} placeholder="https://ejemplo.com/imagen.jpg"/>
+      {form.image && (
+        <div className="mt-2 rounded-xl border border-gray-100 overflow-hidden bg-gray-50 flex items-center justify-center p-2">
+          <img src={form.image} alt="Vista previa" className="max-h-32 rounded-lg object-contain shadow-sm" onError={e => e.target.src='https://placehold.co/400x200?text=Error+al+cargar+imagen'}/>
+        </div>
+      )}
       <div className="flex gap-2">
         <Btn variant="secondary" onClick={onClose} className="flex-1">Cancelar</Btn>
         <Btn onClick={() => { if (isValid) { onSave(form); onClose(); } }} className="flex-1" disabled={!isValid}>
@@ -284,7 +290,9 @@ function MessagesView() {
   const [singleClient, setSingleClient] = useMsgState(state.selectedClientId || '');
   const [selectedClients, setSelectedClients] = useMsgState([]);
   const [vars, setVars] = useMsgState({ nombre: '', producto: '', monto: '', pedido: '', ciudad: '', fecha: '' });
+  const [image, setImage] = useMsgState('');
   const [copied, setCopied] = useMsgState(false);
+  const [imgCopied, setImgCopied] = useMsgState(false);
 
   // Templates state
   const [showTemplateForm, setShowTemplateForm] = useMsgState(false);
@@ -301,6 +309,11 @@ function MessagesView() {
   const countryCode = settings.countryCode || '';
 
   const template = useMsgMemo(() => state.templates.find(t => t.id === selectedTemplate), [state.templates, selectedTemplate]);
+
+  // Sync image when template changes
+  useMsgEffect(() => {
+    if (template) setImage(template.image || '');
+  }, [template?.id]);
 
   // Get recipients based on mode
   const recipients = useMsgMemo(() => {
@@ -341,6 +354,13 @@ function MessagesView() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleCopyImg = () => {
+    if (!image) return;
+    navigator.clipboard.writeText(image).catch(() => {});
+    setImgCopied(true);
+    setTimeout(() => setImgCopied(false), 2000);
+  };
+
   const getWALink = () => {
     if (!previewClient?.phone || !preview) return null;
     return buildWALink(previewClient.phone, preview, countryCode);
@@ -351,7 +371,7 @@ function MessagesView() {
     dispatch({ type: 'ADD_DRAFT', draft: {
       templateId: selectedTemplate, clientId: previewClient.id,
       clientName: previewClient.name, phone: previewClient.phone,
-      message: preview, status: 'draft'
+      message: preview, image: image, status: 'draft'
     }});
     notify('Borrador guardado ✅');
   };
@@ -361,7 +381,7 @@ function MessagesView() {
     const drafts = recipients.map(c => {
       const clientVars = { ...vars, nombre: c.name, ciudad: c.city || '' };
       const msg = renderTemplate(template.body, clientVars);
-      return { templateId: selectedTemplate, clientId: c.id, clientName: c.name, phone: c.phone || '', message: msg, status: 'queued' };
+      return { templateId: selectedTemplate, clientId: c.id, clientName: c.name, phone: c.phone || '', message: msg, image: template.image || '', status: 'queued' };
     });
     dispatch({ type: 'ADD_DRAFTS', drafts });
     notify(`📋 ${drafts.length} mensaje${drafts.length !== 1 ? 's' : ''} añadido${drafts.length !== 1 ? 's' : ''} a la cola`);
@@ -512,14 +532,21 @@ function MessagesView() {
                   <span className="ml-auto text-[10px] text-white/60">WhatsApp</span>
                 </div>
                 <div className="p-4 min-h-[120px]" style={{ background: '#ECE5DD' }}>
-                  {preview ? (
-                    <div className="bg-white rounded-xl rounded-tl-sm px-3.5 py-2.5 shadow-sm max-w-[85%]" style={{ border: 'none' }}>
-                      <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">{preview}</p>
-                      <p className="text-[10px] text-gray-400 mt-1 text-right">ahora</p>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center h-20 text-gray-400 text-sm">Selecciona plantilla y destinatario para previsualizar</div>
-                  )}
+                  <div className="flex flex-col gap-2 max-w-[85%]">
+                    {image && (
+                      <div className="bg-white p-1 rounded-xl rounded-tl-sm shadow-sm overflow-hidden self-start">
+                        <img src={image} alt="Imagen del mensaje" className="w-full h-auto rounded-lg max-h-48 object-cover" onError={e => e.target.src='https://placehold.co/400x200?text=Error+al+cargar+imagen'}/>
+                      </div>
+                    )}
+                    {preview ? (
+                      <div className="bg-white rounded-xl rounded-tl-sm px-3.5 py-2.5 shadow-sm self-start" style={{ border: 'none' }}>
+                        <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">{preview}</p>
+                        <p className="text-[10px] text-gray-400 mt-1 text-right">ahora</p>
+                      </div>
+                    ) : !image && (
+                      <div className="flex items-center justify-center h-20 text-gray-400 text-sm w-full">Selecciona plantilla y destinatario para previsualizar</div>
+                    )}
+                  </div>
                 </div>
                 {recipients.length > 1 && (
                   <div className="px-4 py-2 bg-blue-50 border-t border-blue-100 text-xs text-blue-600 flex items-center gap-2">
@@ -536,6 +563,12 @@ function MessagesView() {
                   {copied ? <IconCheck size={14}/> : <IconCopy size={14}/>}
                   {copied ? '¡Copiado!' : 'Copiar'}
                 </Btn>
+                {image && (
+                  <Btn variant="secondary" onClick={handleCopyImg} disabled={!image}>
+                    {imgCopied ? <IconCheck size={14}/> : <IconLink size={14}/>}
+                    {imgCopied ? '¡Copiado!' : 'Copiar Link'}
+                  </Btn>
+                )}
                 <Btn variant="secondary" onClick={handleSaveDraft} disabled={!preview || recipients.length === 0}>
                   <IconDownload size={14}/>Borrador
                 </Btn>
@@ -577,7 +610,20 @@ function MessagesView() {
           <div className="max-w-2xl mx-auto space-y-3 slide-up">
             <div className="flex justify-between items-center">
               <p className="text-xs text-gray-500">{state.templates.length} plantilla{state.templates.length !== 1 ? 's' : ''}</p>
-              <Btn size="sm" onClick={() => setShowTemplateForm(true)}><IconPlus size={14}/>Nueva plantilla</Btn>
+              <div className="flex gap-2">
+                <Btn variant="secondary" size="sm" onClick={() => {
+                  const example = {
+                    name: 'Ejemplo: Confirmación de Pedido',
+                    body: 'Hola {nombre} 👋 Tu pedido de {producto} por un valor de {monto} ha sido confirmado. Lo enviaremos a {ciudad} pronto. ¡Gracias por tu compra!',
+                    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=400&auto=format&fit=crop'
+                  };
+                  dispatch({ type: 'ADD_TEMPLATE', template: example });
+                  notify('Plantilla de ejemplo creada ✅');
+                }}>
+                  <IconZap size={14}/>Ejemplo
+                </Btn>
+                <Btn size="sm" onClick={() => setShowTemplateForm(true)}><IconPlus size={14}/>Nueva plantilla</Btn>
+              </div>
             </div>
             {state.templates.map(t => (
               <div key={t.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
@@ -608,7 +654,20 @@ function MessagesView() {
             ))}
             {state.templates.length === 0 && (
               <EmptyState icon={<IconMessage size={24}/>} title="Sin plantillas" desc="Crea tu primera plantilla de mensaje reutilizable"
-                action={<Btn onClick={() => setShowTemplateForm(true)}><IconPlus size={15}/>Nueva plantilla</Btn>}/>
+                action={
+                  <div className="flex gap-2">
+                    <Btn variant="secondary" onClick={() => {
+                      const example = {
+                        name: 'Ejemplo: Confirmación de Pedido',
+                        body: 'Hola {nombre} 👋 Tu pedido de {producto} por un valor de {monto} ha sido confirmado. Lo enviaremos a {ciudad} pronto. ¡Gracias por tu compra!',
+                        image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=400&auto=format&fit=crop'
+                      };
+                      dispatch({ type: 'ADD_TEMPLATE', template: example });
+                      notify('Plantilla de ejemplo creada ✅');
+                    }}><IconZap size={14}/>Generar ejemplo</Btn>
+                    <Btn onClick={() => setShowTemplateForm(true)}><IconPlus size={15}/>Nueva plantilla</Btn>
+                  </div>
+                }/>
             )}
           </div>
         )}
