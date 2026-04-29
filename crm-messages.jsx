@@ -349,6 +349,18 @@ function MessagesView() {
 
   const template = useMsgMemo(() => state.templates.find(t => t.id === selectedTemplate), [state.templates, selectedTemplate]);
 
+  // Auto-seleccionar plantilla si la actual se borra o si no hay ninguna seleccionada
+  useMsgEffect(() => {
+    if (state.templates.length > 0) {
+      const exists = state.templates.find(t => t.id === selectedTemplate);
+      if (!selectedTemplate || !exists) {
+        setSelectedTemplate(state.templates[0].id);
+      }
+    } else {
+      setSelectedTemplate('');
+    }
+  }, [state.templates, selectedTemplate]);
+
   // Sync image when template changes
   useMsgEffect(() => {
     if (template) setImage(template.image || '');
