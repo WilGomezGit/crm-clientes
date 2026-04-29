@@ -17,8 +17,10 @@ function renderTemplate(body, vars) {
 // ── Template Editor ────────────────────────────────────────────────────────
 function TemplateEditor({ template, onSave, onClose, isNew }) {
   const [form, setForm] = useMsgState(template || { name: '', body: '', image: '' });
+  const [uploading, setUploading] = useMsgState(false);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const textareaRef = useMsgRef(null);
+  const fileRef = useMsgRef(null);
   const variables = ['{nombre}', '{producto}', '{monto}', '{pedido}', '{ciudad}', '{fecha}'];
 
   const insertVar = (v) => {
@@ -28,6 +30,23 @@ function TemplateEditor({ template, onSave, onClose, isNew }) {
     const newBody = form.body.slice(0, start) + v + form.body.slice(end);
     setForm(f => ({ ...f, body: newBody }));
     setTimeout(() => { el.focus(); el.setSelectionRange(start + v.length, start + v.length); }, 0);
+  };
+  
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!window.fbStorage) { alert("Firebase Storage no disponible"); return; }
+    setUploading(true);
+    try {
+      const storageRef = window.fbStorage.ref(`templates/${Date.now()}_${file.name}`);
+      await storageRef.put(file);
+      const url = await storageRef.getDownloadURL();
+      set('image', url);
+    } catch (err) {
+      alert("Error al subir imagen: " + err.message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const isValid = form.name.trim() && form.body.trim();
@@ -50,10 +69,24 @@ function TemplateEditor({ template, onSave, onClose, isNew }) {
           ))}
         </div>
       </div>
-      <Input label="URL de Imagen (Opcional)" value={form.image || ''} onChange={e => set('image', e.target.value)} placeholder="https://ejemplo.com/imagen.jpg"/>
+      <div className="space-y-2">
+        <label className="text-xs font-medium text-gray-600">Imagen del mensaje</label>
+        <div className="flex gap-2">
+          <Input value={form.image || ''} onChange={e => set('image', e.target.value)} placeholder="URL de la imagen..." className="flex-1"/>
+          <input type="file" ref={fileRef} onChange={handleUpload} className="hidden" accept="image/*"/>
+          <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+            className={`px-4 rounded-xl border border-gray-200 text-sm font-medium flex items-center gap-2 transition-all ${uploading ? 'bg-gray-100 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50 active:scale-95'}`}>
+            {uploading ? <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"/> : <IconUpload size={16}/>}
+            {uploading ? 'Subiendo...' : 'PC'}
+          </button>
+        </div>
+      </div>
       {form.image && (
-        <div className="mt-2 rounded-xl border border-gray-100 overflow-hidden bg-gray-50 flex items-center justify-center p-2">
+        <div className="relative mt-2 rounded-xl border border-gray-100 overflow-hidden bg-gray-50 flex items-center justify-center p-2 group">
           <img src={form.image} alt="Vista previa" className="max-h-32 rounded-lg object-contain shadow-sm" onError={e => e.target.src='https://placehold.co/400x200?text=Error+al+cargar+imagen'}/>
+          <button onClick={() => set('image', '')} className="absolute top-3 right-3 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+            <IconX size={14}/>
+          </button>
         </div>
       )}
       <div className="flex gap-2">

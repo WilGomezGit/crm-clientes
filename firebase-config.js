@@ -15,6 +15,7 @@ firebase.initializeApp(firebaseConfig);
 // 🔥 LO QUE TU APP NECESITA
 window.fbAuth = firebase.auth();
 window.fbDb = firebase.firestore();
+window.fbStorage = firebase.storage();
 window.fbReady = true;
 
 // Persistencia
