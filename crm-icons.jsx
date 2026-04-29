@@ -48,11 +48,13 @@ const IconRefresh = (p) => <I {...p} d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.8
 const IconInfo = (p) => <I {...p} d="M12 22a10 10 0 100-20 10 10 0 000 20zM12 8h.01M11 12h1v4h1" />;
 const IconCloud = (p) => <I {...p} d="M17.5 19c2.5 0 4.5-2 4.5-4.5 0-2.3-1.7-4.2-3.9-4.5-.3-3.1-2.9-5.5-6-5.5-2.5 0-4.7 1.6-5.6 3.9-2 .5-3.5 2.3-3.5 4.6 0 2.5 2 4.5 4.5 4.5h10z" />;
 
+const IconLink = (p) => <I {...p} d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />;
+
 Object.assign(window, {
   IconDashboard, IconUsers, IconShoppingBag, IconMessage, IconUpload, IconSettings,
   IconSearch, IconPlus, IconX, IconCheck, IconChevronRight, IconChevronDown, IconChevronLeft,
   IconBell, IconMenu, IconPhone, IconMapPin, IconEdit, IconTrash, IconEye,
   IconFilter, IconDownload, IconSend, IconClock, IconZap, IconTrendingUp,
   IconPackage, IconLogOut, IconUser, IconGrid, IconList, IconWhatsapp,
-  IconStar, IconCopy, IconRefresh, IconInfo, IconCloud,
+  IconStar, IconCopy, IconRefresh, IconInfo, IconCloud, IconLink
 });
