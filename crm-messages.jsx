@@ -364,7 +364,7 @@ function MessagesView() {
   // Sync image when template changes
   useMsgEffect(() => {
     if (template) setImage(template.image || '');
-  }, [template?.id]);
+  }, }, [template?.id, template?.image]);
 
   // Get recipients based on mode
   const recipients = useMsgMemo(() => {
