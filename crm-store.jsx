@@ -246,15 +246,16 @@ function CRMProvider({ children }) {
 
   // Debounced Firestore save — 2 s after any data change
   useStoreEffect(() => {
-    // PROTECCIÓN: No guardamos si no hemos cargado los datos o si la sesión no está lista
-    if (!state.isLoggedIn || !state.user?.uid || !window.fbDb || state.authLoading) return;
+    // Si no hay usuario o base de datos, no hacemos nada
+    if (!state.isLoggedIn || !state.user?.uid || !window.fbDb) return;
     
     const timer = setTimeout(() => {
+      console.log("💾 Intentando autoguardado...");
       forceSave();
-    }, 3000);
+    }, 2000);
     return () => clearTimeout(timer);
   }, [state.clients, state.orders, state.templates, state.drafts, state.catalog,
-      state.notifications, state.theme, state.settings, forceSave]);
+      state.notifications, state.theme, state.settings, state.isLoggedIn, forceSave]);
 
   // Auto-dismiss UI toast notifications
   useStoreEffect(() => {
