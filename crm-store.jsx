@@ -251,7 +251,7 @@ function CRMProvider({ children }) {
     
     const timer = setTimeout(() => {
       forceSave();
-    }, 1500);
+    }, 3000);
     return () => clearTimeout(timer);
   }, [state.clients, state.orders, state.templates, state.drafts, state.catalog,
       state.notifications, state.theme, state.settings, forceSave]);
