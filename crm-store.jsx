@@ -318,10 +318,7 @@ function buildWALink(phone, message, countryCode, image) {
   if (!clean) return null;
   const full = clean.startsWith(countryCode || '') ? clean : (countryCode || '') + clean;
   let text = message || '';
-  if (image && !image.startsWith('data:')) {
-    // Ponemos la imagen arriba con dos saltos de línea para que WhatsApp genere el preview
-    text = image + '\n\n' + text;
-  }
+  // Ya no incluimos el 'image' en el texto porque lo pasamos por el portapapeles (Ctrl+V)
   return 'https://wa.me/' + full + '?text=' + encodeURIComponent(text);
 }
 
