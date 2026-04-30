@@ -28,7 +28,6 @@ const BASE_STATE = {
     countryCode: '57', 
     msgInterval: 15, 
     confirmBeforeSend: true,
-    botMode: false,
   },
 };
 

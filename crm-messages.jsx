@@ -480,44 +480,40 @@ function MessagesView() {
     notify('Cola detenida', 'warn');
   };
 
+  // Helper para copiar imagen al portapapeles
+  const copyImgToClipboard = async (url) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      // Solo podemos copiar PNGs de forma confiable en la mayoría de navegadores
+      // Si no es PNG, intentamos copiarlo igual, pero los navegadores suelen ser estrictos
+      const item = new ClipboardItem({ [blob.type]: blob });
+      await navigator.clipboard.write([item]);
+      return true;
+    } catch (err) {
+      console.warn("No se pudo copiar la imagen al portapapeles:", err);
+      return false;
+    }
+  };
+
   useMsgEffect(() => {
     if (!queueRunning || queueIndex < 0 || queueIndex >= queuedDrafts.length) return;
     const current = queuedDrafts[queueIndex];
 
     const processSend = async () => {
       const phone = current.phone.replace(/\D/g, '');
-      const fullPhone = phone.length <= 10 ? (state.settings.countryCode || '52') + phone : phone;
+      const fullPhone = phone.length <= 10 ? (state.settings.countryCode || '57') + phone : phone;
 
-      if (state.settings.botMode) {
-        try {
-          console.log('🤖 Robot: Enviando a', fullPhone);
-          const res = await fetch('http://localhost:5000/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              phone: fullPhone,
-              text: current.message,
-              image: current.image
-            })
-          });
-          const result = await res.json();
-          if (result.success) {
-            notify(`✅ Robot envió a ${current.name || fullPhone}`);
-          } else {
-            notify(`❌ Falló envío a ${current.name || fullPhone}. Saltando...`, 'error');
-            // No detenemos la cola, solo saltamos al siguiente
-          }
-        } catch (err) {
-          notify('❌ Robot desconectado. Deteniendo cola...', 'error');
-          stopQueue();
-          alert('Asegúrate de ejecutar: python whatsapp_robot.py');
-          return;
-        }
-      } else {
-        const waLink = buildWALink(fullPhone, current.message, state.settings.countryCode, current.image);
-        if (waLink) {
-          setTimeout(() => window.open(waLink, '_blank'), 300);
-        }
+      // TRUCO MAESTRO: Copiar imagen al portapapeles automáticamente
+      if (current.image) {
+        notify('📸 Copiando imagen...', 'warn');
+        const copied = await copyImgToClipboard(current.image);
+        if (copied) notify('✅ Imagen copiada. ¡Pégala con Ctrl+V!');
+      }
+
+      const waLink = buildWALink(fullPhone, current.message, state.settings.countryCode, current.image);
+      if (waLink) {
+        setTimeout(() => window.open(waLink, '_blank'), 500);
       }
     };
 
@@ -686,10 +682,13 @@ function MessagesView() {
                   {recipients.length > 1 ? `Cola (${recipients.length})` : 'A la cola'}
                 </Btn>
                 {recipientMode === 'single' && waLink ? (
-                  <a href={waLink} target="_blank" rel="noreferrer"
+                  <button onClick={async () => {
+                    if (image) await copyImgToClipboard(image);
+                    window.open(waLink, '_blank');
+                  }}
                     className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-[#25D366] text-white hover:bg-[#1ebe5d] transition-all active:scale-95">
                     <IconWhatsapp size={15}/>WhatsApp
-                  </a>
+                  </button>
                 ) : (
                   <Btn variant="whatsapp" onClick={handleAddToQueue} disabled={!preview || recipients.length === 0}>
                     <IconWhatsapp size={15}/>

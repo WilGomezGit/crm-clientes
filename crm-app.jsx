@@ -98,7 +98,6 @@ function SettingsView() {
     countryCode: settings.countryCode || '52',
     msgInterval: settings.msgInterval || 30,
     confirmBeforeSend: settings.confirmBeforeSend !== false,
-    botMode: settings.botMode || false,
   });
   const [saved, setSaved] = useAppState(false);
   const [showReset, setShowReset] = useAppState(false);
@@ -224,16 +223,6 @@ function SettingsView() {
             <button onClick={() => setLocalSettings(s => ({ ...s, confirmBeforeSend: !s.confirmBeforeSend }))}
               className={`w-11 h-6 rounded-full relative flex items-center px-0.5 transition-colors ${localSettings.confirmBeforeSend ? 'bg-primary-600' : 'bg-gray-200'}`}>
               <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform ${localSettings.confirmBeforeSend ? 'translate-x-5' : ''}`}/>
-            </button>
-          </div>
-          <div className="flex items-center justify-between py-1 border-t border-gray-50 pt-3">
-            <div>
-              <p className="text-sm font-medium text-primary-600">🤖 Modo Robot (Automatizado)</p>
-              <p className="text-xs text-gray-400">Requiere whatsapp_robot.py abierto en tu PC</p>
-            </div>
-            <button onClick={() => setLocalSettings(s => ({ ...s, botMode: !s.botMode }))}
-              className={`w-11 h-6 rounded-full relative flex items-center px-0.5 transition-colors ${localSettings.botMode ? 'bg-indigo-600' : 'bg-gray-200'}`}>
-              <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform ${localSettings.botMode ? 'translate-x-5' : ''}`}/>
             </button>
           </div>
         </Section>
