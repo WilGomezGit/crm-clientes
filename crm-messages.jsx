@@ -495,21 +495,26 @@ function MessagesView() {
     return pngBlob;
   };
 
-  const copyImgToClipboard = async (url) => {
+  const copyImgToClipboard = async (url, text = '') => {
     try {
       const response = await fetch(url);
       let blob = await response.blob();
       
-      // Chrome solo acepta PNG en el portapapeles
       if (blob.type !== 'image/png') {
         blob = await convertToPng(blob);
       }
       
-      const item = new ClipboardItem({ 'image/png': blob });
+      // COPIADO DOBLE: Imagen + Texto como leyenda
+      const clipboardData = { 'image/png': blob };
+      if (text) {
+        clipboardData['text/plain'] = new Blob([text], { type: 'text/plain' });
+      }
+      
+      const item = new ClipboardItem(clipboardData);
       await navigator.clipboard.write([item]);
       return true;
     } catch (err) {
-      console.warn("No se pudo copiar la imagen al portapapeles:", err);
+      console.warn("No se pudo copiar la imagen/texto al portapapeles:", err);
       return false;
     }
   };
@@ -525,8 +530,8 @@ function MessagesView() {
       // TRUCO MAESTRO: Copiar imagen al portapapeles automáticamente
       if (current.image) {
         setTimeout(() => notify('📸 Copiando imagen...', 'warn'), 0);
-        const copied = await copyImgToClipboard(current.image);
-        if (copied) setTimeout(() => notify('✅ Imagen copiada. ¡Pégala con Ctrl+V!'), 0);
+        const copied = await copyImgToClipboard(current.image, current.message);
+        if (copied) setTimeout(() => notify('✅ Imagen y mensaje listos. ¡Pégalos con Ctrl+V!'), 0);
       }
 
       const waLink = buildWALink(fullPhone, current.message, state.settings.countryCode, current.image);
