@@ -4,10 +4,7 @@ const { createContext, useContext, useReducer, useEffect: useStoreEffect, useCal
 const CRMContext = createContext(null);
 
 const MOCK_TEMPLATES = [
-  { id: 't1', name: 'Pedido confirmado', body: 'Hola {nombre} \u{1F44B} Tu pedido de *{producto}* está confirmado y en preparación. Te avisamos cuando sea enviado. ¡Gracias por tu compra!' },
-  { id: 't2', name: 'Pedido enviado', body: 'Hola {nombre}! Tu pedido de *{producto}* ya fue enviado \u{1F69B}. Tiempo estimado de entrega: 2-3 días hábiles. Cualquier duda, escríbenos.' },
-  { id: 't3', name: 'Cobro pendiente', body: 'Hola {nombre} \u{1F60A} Te recordamos que tienes un pago pendiente de *${monto}* por tu pedido. Puedes transferir a nuestros datos o pagar contraentrega. ¡Gracias!' },
-  { id: 't4', name: 'Nuevo catálogo', body: 'Hola {nombre}! \u{1F31F} Tenemos novedades en nuestro catálogo que te van a encantar. ¿Te puedo mostrar las últimas llegadas? Tenemos precios especiales esta semana.' },
+  { id: 't1', name: 'Confirmación de Pedido', body: 'Hola {nombre} 👋 Tu pedido de *{producto}* por un valor de {monto} ha sido confirmado. ¡Gracias por tu compra!', image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=400&auto=format&fit=crop' },
 ];
 
 const BASE_STATE = {
