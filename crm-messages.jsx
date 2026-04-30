@@ -480,14 +480,32 @@ function MessagesView() {
     notify('Cola detenida', 'warn');
   };
 
-  // Helper para copiar imagen al portapapeles
+  // Convertir cualquier imagen a PNG para que el portapapeles la acepte
+  const convertToPng = async (blob) => {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    await new Promise(res => { img.onload = res; img.src = url; });
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    const pngBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    URL.revokeObjectURL(url);
+    return pngBlob;
+  };
+
   const copyImgToClipboard = async (url) => {
     try {
       const response = await fetch(url);
-      const blob = await response.blob();
-      // Solo podemos copiar PNGs de forma confiable en la mayoría de navegadores
-      // Si no es PNG, intentamos copiarlo igual, pero los navegadores suelen ser estrictos
-      const item = new ClipboardItem({ [blob.type]: blob });
+      let blob = await response.blob();
+      
+      // Chrome solo acepta PNG en el portapapeles
+      if (blob.type !== 'image/png') {
+        blob = await convertToPng(blob);
+      }
+      
+      const item = new ClipboardItem({ 'image/png': blob });
       await navigator.clipboard.write([item]);
       return true;
     } catch (err) {
