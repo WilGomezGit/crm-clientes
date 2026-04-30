@@ -4,7 +4,7 @@ const { createContext, useContext, useReducer, useEffect: useStoreEffect, useCal
 const CRMContext = createContext(null);
 
 const MOCK_TEMPLATES = [
-  { id: 't1', name: 'Confirmación de Pedido', body: 'Hola {nombre} \uD83D\uDC4B Tu pedido de *{producto}* por un valor de {monto} ha sido confirmado. ¡Gracias por tu compra!', image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=400&auto=format&fit=crop' },
+  { id: 't1', name: 'Confirmación de Pedido', body: 'Hola {nombre}. Tu pedido de *{producto}* por un valor de {monto} ha sido confirmado. ¡Gracias por tu compra!', image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=400&auto=format&fit=crop' },
 ];
 
 const BASE_STATE = {
@@ -43,10 +43,7 @@ function reducer(state, action) {
         currentView: 'dashboard',
         clients:       d.clients       || [],
         orders:        d.orders        || [],
-        templates:     (d.templates || MOCK_TEMPLATES).map(t => ({
-          ...t,
-          body: (t.body || '').replace(/\uFFFD/g, '\uD83D\uDC4B') // Limpia el símbolo 
-        })),
+        templates:     d.templates     || MOCK_TEMPLATES,
         drafts:        d.drafts        || [],
         catalog:       d.catalog       || [],
         notifications: d.notifications || [],
