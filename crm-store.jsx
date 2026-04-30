@@ -226,13 +226,17 @@ function CRMProvider({ children }) {
       settings:      s.settings,
     };
     
+    console.log("📂 Intentando guardar en path: users/" + s.user.uid + "/data/main");
+    console.log("👤 UID actual:", s.user.uid);
+
     try {
       await window.fbDb.collection('users').doc(s.user.uid).collection('data').doc('main').set(toSave);
       console.log("✅ ¡Guardado en la nube con éxito!");
       dispatch({ type: 'SAVING_DONE' });
       return true;
     } catch (e) {
-      console.error("Error saving data:", e);
+      console.error("❌ ERROR CRÍTICO AL GUARDAR:", e);
+      console.error("Código de error:", e.code);
       dispatch({ type: 'SAVING_DONE' });
       
       // Notify permission issues
@@ -251,7 +255,7 @@ function CRMProvider({ children }) {
     if (!state.isLoggedIn || !state.user?.uid || !window.fbDb) return;
     
     const timer = setTimeout(() => {
-      console.log("💾 Intentando autoguardado...");
+      console.log("💾 Iniciando proceso de autoguardado...");
       forceSave();
     }, 2000);
     return () => clearTimeout(timer);
