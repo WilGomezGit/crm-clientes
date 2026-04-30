@@ -120,6 +120,7 @@ function TemplateEditor({ template, onSave, onClose, isNew }) {
 
 // ── Queue Item ─────────────────────────────────────────────────────────────
 function QueueItem({ draft, index, isCurrent, countdown, onRemove, countryCode }) {
+
   const waPhone = (draft.phone || '').replace(/\D/g, '');
   const waUrl = waPhone ? buildWALink(draft.phone, draft.message, countryCode, draft.image) : null;
   const s = getStatusColor(draft.status);
@@ -479,15 +480,47 @@ function MessagesView() {
     notify('Cola detenida', 'warn');
   };
 
-  // Open current WA link and advance queue
   useMsgEffect(() => {
     if (!queueRunning || queueIndex < 0 || queueIndex >= queuedDrafts.length) return;
     const current = queuedDrafts[queueIndex];
 
-    const waLink = buildWALink(current.phone, current.message, countryCode, current.image);
-    if (waLink) {
-      setTimeout(() => window.open(waLink, '_blank'), 300);
-    }
+    const processSend = async () => {
+      const phone = current.phone.replace(/\D/g, '');
+      const fullPhone = phone.length <= 10 ? (state.settings.countryCode || '52') + phone : phone;
+
+      if (state.settings.botMode) {
+        try {
+          console.log('🤖 Robot: Enviando a', fullPhone);
+          const res = await fetch('http://localhost:5000/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              phone: fullPhone,
+              text: current.message,
+              image: current.image
+            })
+          });
+          const result = await res.json();
+          if (result.success) {
+            notify(`✅ Robot envió a ${current.name || fullPhone}`);
+          } else {
+            notify('❌ Robot falló', 'error');
+            stopQueue();
+          }
+        } catch (err) {
+          notify('❌ Robot desconectado', 'error');
+          stopQueue();
+          alert('Asegúrate de ejecutar: python whatsapp_robot.py');
+        }
+      } else {
+        const waLink = buildWALink(fullPhone, current.message, state.settings.countryCode, current.image);
+        if (waLink) {
+          setTimeout(() => window.open(waLink, '_blank'), 300);
+        }
+      }
+    };
+
+    processSend();
 
     setCountdown(msgInterval);
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -499,7 +532,7 @@ function MessagesView() {
           if (next >= queuedDrafts.length) {
             setQueueRunning(false);
             setQueueIndex(-1);
-            notify('✅ Cola completada — todos los mensajes enviados');
+            notify('✅ Cola completada');
           } else {
             setQueueIndex(next);
           }

@@ -24,7 +24,12 @@ const BASE_STATE = {
   theme: 'light',
   importedClients: [],
   saving: false,
-  settings: { countryCode: '57', msgInterval: 30, confirmBeforeSend: true },
+  settings: { 
+    countryCode: '52', 
+    msgInterval: 30, 
+    confirmBeforeSend: true,
+    botMode: false,
+  },
 };
 
 function reducer(state, action) {
