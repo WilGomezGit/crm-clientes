@@ -36,26 +36,33 @@ function TemplateEditor({ template, onSave, onClose, isNew }) {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Validar tamaño (máximo 2MB ahora que va a Storage)
-    if (file.size > 2 * 1024 * 1024) {
-      alert("La imagen es muy grande. Por favor usa una de menos de 2MB.");
+    // Validar tamaño (ImgBB es generoso, permitimos 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("La imagen es muy grande. Máximo 10MB.");
       return;
     }
 
     setUploading(true);
     try {
-      if (!window.fbStorage) {
-        throw new Error("Firebase Storage no está disponible.");
-      }
-      const storageRef = window.fbStorage.ref();
-      const fileRef = storageRef.child(`templates/${Date.now()}_${file.name}`);
-      const snapshot = await fileRef.put(file);
-      const url = await snapshot.ref.getDownloadURL();
+      const formData = new FormData();
+      formData.append('image', file);
       
-      set('image', url);
+      const apiKey = '029e9d5cea134ae391024baf27b679e8';
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        set('image', data.data.url);
+      } else {
+        throw new Error(data.error?.message || "Error al subir a ImgBB");
+      }
     } catch (err) {
-      console.error("Error al subir archivo:", err);
-      alert("No se pudo subir la imagen. Verifica tu conexión o configuración de Firebase.");
+      console.error("Error upload:", err);
+      alert("Error al subir la imagen: " + err.message);
     } finally {
       setUploading(false);
     }
