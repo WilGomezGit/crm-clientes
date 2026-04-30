@@ -767,11 +767,11 @@ function MessagesView() {
                     <Btn variant="secondary" onClick={() => {
                       const example = {
                         name: 'Ejemplo: Confirmación de Pedido',
-                        body: 'Hola {nombre} 👋 Tu pedido de {producto} por un valor de {monto} ha sido confirmado. Lo enviaremos a {ciudad} pronto. ¡Gracias por tu compra!',
+                        body: 'Hola {nombre} \uD83D\uDC4B Tu pedido de {producto} por un valor de {monto} ha sido confirmado. Lo enviaremos a {ciudad} pronto. ¡Gracias por tu compra!',
                         image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=400&auto=format&fit=crop'
                       };
                       dispatch({ type: 'ADD_TEMPLATE', template: example });
-                      notify('Plantilla de ejemplo creada ✅');
+                      notify('Plantilla de ejemplo creada \u2705');
                     }}><IconZap size={14}/>Generar ejemplo</Btn>
                     <Btn onClick={() => setShowTemplateForm(true)}><IconPlus size={15}/>Nueva plantilla</Btn>
                   </div>

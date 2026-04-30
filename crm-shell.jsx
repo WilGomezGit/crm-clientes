@@ -212,8 +212,7 @@ function Sidebar({ collapsed, setCollapsed }) {
             </div>
           </div>
         )}
-        <button onClick={async () => {
-            await forceSave();
+        <button onClick={() => {
             dispatch({ type: 'LOGOUT' });
           }}
           className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors ${collapsed ? 'justify-center' : ''}`}
