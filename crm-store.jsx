@@ -25,7 +25,7 @@ const BASE_STATE = {
   importedClients: [],
   saving: false,
   settings: { 
-    countryCode: '52', 
+    countryCode: '57', 
     msgInterval: 30, 
     confirmBeforeSend: true,
     botMode: false,
