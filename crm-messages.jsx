@@ -504,13 +504,14 @@ function MessagesView() {
           if (result.success) {
             notify(`✅ Robot envió a ${current.name || fullPhone}`);
           } else {
-            notify('❌ Robot falló', 'error');
-            stopQueue();
+            notify(`❌ Falló envío a ${current.name || fullPhone}. Saltando...`, 'error');
+            // No detenemos la cola, solo saltamos al siguiente
           }
         } catch (err) {
-          notify('❌ Robot desconectado', 'error');
+          notify('❌ Robot desconectado. Deteniendo cola...', 'error');
           stopQueue();
           alert('Asegúrate de ejecutar: python whatsapp_robot.py');
+          return;
         }
       } else {
         const waLink = buildWALink(fullPhone, current.message, state.settings.countryCode, current.image);

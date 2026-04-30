@@ -26,7 +26,7 @@ const BASE_STATE = {
   saving: false,
   settings: { 
     countryCode: '57', 
-    msgInterval: 30, 
+    msgInterval: 15, 
     confirmBeforeSend: true,
     botMode: false,
   },
