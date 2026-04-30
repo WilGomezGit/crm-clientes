@@ -244,9 +244,11 @@ function CRMProvider({ children }) {
     }
   }, []);
 
-  // Debounced Firestore save — 1.5 s after any data change
+  // Debounced Firestore save — 2 s after any data change
   useStoreEffect(() => {
-    if (!state.isLoggedIn || !state.user?.uid || !window.fbDb) return;
+    // PROTECCIÓN: No guardamos si no hemos cargado los datos o si la sesión no está lista
+    if (!state.isLoggedIn || !state.user?.uid || !window.fbDb || state.authLoading) return;
+    
     const timer = setTimeout(() => {
       forceSave();
     }, 1500);
@@ -317,7 +319,8 @@ function buildWALink(phone, message, countryCode, image) {
   const full = clean.startsWith(countryCode || '') ? clean : (countryCode || '') + clean;
   let text = message || '';
   if (image && !image.startsWith('data:')) {
-    text += '\n\n' + image;
+    // Ponemos la imagen arriba con dos saltos de línea para que WhatsApp genere el preview
+    text = image + '\n\n' + text;
   }
   return 'https://wa.me/' + full + '?text=' + encodeURIComponent(text);
 }
