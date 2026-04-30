@@ -43,7 +43,10 @@ function reducer(state, action) {
         currentView: 'dashboard',
         clients:       d.clients       || [],
         orders:        d.orders        || [],
-        templates:     d.templates     || MOCK_TEMPLATES,
+        templates:     (d.templates || MOCK_TEMPLATES).map(t => ({
+          ...t,
+          body: (t.body || '').replace(/\uFFFD/g, '\uD83D\uDC4B') // Limpia el símbolo 
+        })),
         drafts:        d.drafts        || [],
         catalog:       d.catalog       || [],
         notifications: d.notifications || [],
