@@ -228,6 +228,7 @@ function CRMProvider({ children }) {
     
     try {
       await window.fbDb.collection('users').doc(s.user.uid).collection('data').doc('main').set(toSave);
+      console.log("✅ ¡Guardado en la nube con éxito!");
       dispatch({ type: 'SAVING_DONE' });
       return true;
     } catch (e) {
