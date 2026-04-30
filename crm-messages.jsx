@@ -506,9 +506,9 @@ function MessagesView() {
 
       // TRUCO MAESTRO: Copiar imagen al portapapeles automáticamente
       if (current.image) {
-        notify('📸 Copiando imagen...', 'warn');
+        setTimeout(() => notify('📸 Copiando imagen...', 'warn'), 0);
         const copied = await copyImgToClipboard(current.image);
-        if (copied) notify('✅ Imagen copiada. ¡Pégala con Ctrl+V!');
+        if (copied) setTimeout(() => notify('✅ Imagen copiada. ¡Pégala con Ctrl+V!'), 0);
       }
 
       const waLink = buildWALink(fullPhone, current.message, state.settings.countryCode, current.image);
@@ -529,7 +529,7 @@ function MessagesView() {
           if (next >= queuedDrafts.length) {
             setQueueRunning(false);
             setQueueIndex(-1);
-            notify('✅ Cola completada');
+            setTimeout(() => notify('✅ Cola completada'), 0);
           } else {
             setQueueIndex(next);
           }
